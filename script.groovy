@@ -1,7 +1,7 @@
 def buildApp() {
     echo "Building the application..."
-    sh 'npm install' // Install dependencies if needed
-    sh 'npm pack'
+    sh 'npm install' 
+    sh 'npm run build'
 } 
 def buildImage(IMAGE_VERSION,IMAGE_NAME) {
     echo "build image"
