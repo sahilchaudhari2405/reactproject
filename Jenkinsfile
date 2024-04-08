@@ -19,7 +19,9 @@ pipeline {
         stage('build app') {
             steps {
                 script {
-                    gv.buildApp()
+                    dir('my-app/') {
+                      gv.buildApp()
+                    }
                 }
             }
         }
