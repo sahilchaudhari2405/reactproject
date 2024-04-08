@@ -2,7 +2,7 @@ def gv
 pipeline {
     agent any
     tools{
-        node 'NodeJs'
+        nodejs "NodeJs"
     }
     parameters {
         string(defaultValue: '1.2', description: 'Custom version for the image', name: 'IMAGE_VERSION')
