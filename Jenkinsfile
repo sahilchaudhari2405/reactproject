@@ -1,37 +1,41 @@
 pipeline {
     agent any
-
-    environment {
-        DOCKER_IMAGE_NAME = 'my-node-app'
-        DOCKERFILE_PATH = './Dockerfile'
+    tools {
+        nodejs('NodeJs')
+    }
+    parameters {
+        string(defaultValue: '1.2', description: 'Custom version for the image', name: 'IMAGE_VERSION')
+        string(defaultValue: 'name', description: 'name of repo or tag', name: 'IMAGE_NAME')
     }
 
     stages {
-        stage('Build Docker Image') {
+        stage('init') {
             steps {
                 script {
-                    // Build Docker image
-                    docker.build("${DOCKER_IMAGE_NAME}", "-f ${DOCKERFILE_PATH} .")
+                    gv = load 'script.groovy'
                 }
             }
         }
-
-        stage('Run Docker Container') {
+        stage('build app') {
             steps {
                 script {
-                    // Run Docker container based on the built image
-                    docker.image("${DOCKER_IMAGE_NAME}").run('-p 8080:80 --name my-container -d')
+                    gv.buildApp()
                 }
             }
         }
-    }
-
-    post {
-        success {
-            echo 'Docker container started successfully.'
+        stage('build image') {
+            steps {
+                script {
+                    gv.buildImage(params.IMAGE_VERSION, params.IMAGE_NAME)
+                }
+            }
         }
-        failure {
-            echo 'Failed to start Docker container.'
+        stage('deploy') {
+            steps {
+                script {
+                    gv.deployApp(params.IMAGE_VERSION, params.IMAGE_NAME)
+                }
+            }
         }
     }
 }
