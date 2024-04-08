@@ -1,55 +1,37 @@
-def gv
 pipeline {
     agent any
-    tools{
-        nodejs "NodeJs"
-    }
-    parameters {
-        string(defaultValue: '1.2', description: 'Custom version for the image', name: 'IMAGE_VERSION')
-         string(defaultValue: 'name', description: 'name of repo or tag', name: 'IMAGE_NAME')
 
+    environment {
+        DOCKER_IMAGE_NAME = 'my-node-app'
+        DOCKERFILE_PATH = './Dockerfile'
     }
 
     stages {
-        stage('init') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    gv = load 'script.groovy'
+                    // Build Docker image
+                    docker.build("${DOCKER_IMAGE_NAME}", "-f ${DOCKERFILE_PATH} .")
                 }
             }
         }
-        stage('build app') {
+
+        stage('Run Docker Container') {
             steps {
                 script {
-                    gv.buildApp()
+                    // Run Docker container based on the built image
+                    docker.image("${DOCKER_IMAGE_NAME}").run('-p 8080:80 --name my-container -d')
                 }
             }
         }
-        stage('build image') {
-            when{
-                expression
-                {
-                    BRANCH_NAME == 'master' ||  BRANCH_NAME == 'development'
-                }
-            }
-            steps {
-                script {
-                    gv.buildImage(params.IMAGE_VERSION,params.IMAGE_NAME)
-                }
-            }
+    }
+
+    post {
+        success {
+            echo 'Docker container started successfully.'
         }
-        stage('deploy') {
-             when{
-                expression
-                {
-                     BRANCH_NAME == 'master' ||  BRANCH_NAME == 'development'
-                }
-            }
-            steps {
-                script {
-                    gv.deployApp(params.IMAGE_VERSION,params.IMAGE_NAME)
-                }
-            }
+        failure {
+            echo 'Failed to start Docker container.'
         }
     }
 }
